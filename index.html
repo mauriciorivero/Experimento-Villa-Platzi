@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<!--
+    Proyecto Interactivo - Adobe Animate Multi-Escena
+    Sistema modular para gestionar múltiples composiciones de Adobe Animate
+    
+    @author Mauricio Rivero
+    @copyright Copyright (c) 2024 Mauricio Rivero
+    @license MIT License - Se requiere atribución al autor original
+    @version 2.0
+-->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Mauricio Rivero">
+    <title>Proyecto Interactivo - Adobe Animate</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Contenedor principal */
+        #app-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        /*
+         * Jerarquía de z-index:
+         * - app-container: 0 (base)
+         * - scene-container: 1 (escenas)
+         * - test-controls, info-overlay: 10000 (UI permanente)
+         * - global-preloader: 100000 (cubre todo durante carga)
+         */
+
+        /* Estilo para cada escena */
+        .scene-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 1;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .scene-container.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Contenedor de animación de Adobe Animate */
+        .animation-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: auto;
+            height: auto;
+        }
+
+        .animation-canvas {
+            display: block;
+            background-color: #fff;
+        }
+
+        /* Preloader global */
+        #global-preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            transition: opacity 0.3s;
+        }
+
+        #global-preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            border: 5px solid #333;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: #fff;
+            margin-top: 20px;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        /* Panel de control de prueba */
+        #test-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            pointer-events: auto;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        #test-controls h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .test-button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+        }
+
+        .test-button.gt {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .test-button.skyloft {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .test-button.valley {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .current-scene {
+            color: #3498db;
+            font-size: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .current-scene span {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Info overlay */
+        #info-overlay {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            pointer-events: none;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        #info-overlay h4 {
+            margin-bottom: 8px;
+            color: #3498db;
+        }
+
+        #info-overlay p {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #test-controls {
+                top: 10px;
+                right: 10px;
+                padding: 15px;
+            }
+
+            .test-button {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+
+            #info-overlay {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Preloader Global -->
+    <div id="global-preloader">
+        <div class="loader"></div>
+        <div class="loader-text">Cargando aplicación...</div>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div id="app-container">
+        <!-- Las escenas se generarán dinámicamente aquí -->
+    </div>
+
+    <!-- Panel de Control de Prueba -->
+    <div id="test-controls">
+        <h3>🎮 Control de Escenas</h3>
+        <button class="test-button gt" onclick="navigateToScene('gt-menu')">
+            🏎️ Gran Turismo Menu
+        </button>
+        <button class="test-button skyloft" onclick="navigateToScene('skyloft-menu')">
+            ☁️ Skyloft Menu
+        </button>
+        <button class="test-button valley" onclick="navigateToScene('valley-menu')">
+            🏔️ Valley Menu
+        </button>
+        <div class="current-scene">
+            Escena actual: <span id="current-scene-name">Ninguna</span>
+        </div>
+    </div>
+
+    <!-- Info Overlay -->
+    <div id="info-overlay">
+        <h4>ℹ️ Información</h4>
+        <p>✨ Usa los botones de la derecha para navegar</p>
+        <p>🚀 Las escenas se cargan bajo demanda</p>
+        <p>🎯 Transiciones suaves sin recargar página</p>
+    </div>
+
+    <!-- CreateJS -->
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    
+    <!-- Gestor de Escenas -->
+    <script src="js/SceneManager.js"></script>
+    
+    <!-- Main App -->
+    <script src="js/main.js"></script>
+
+    <!-- Helper para botones de prueba -->
+    <script>
+        function navigateToScene(sceneId) {
+            if (window.sceneManager) {
+                window.sceneManager.goToScene(sceneId);
+                // Actualizar UI
+                setTimeout(() => {
+                    const currentScene = window.sceneManager.getCurrentScene();
+                    if (currentScene) {
+                        document.getElementById('current-scene-name').textContent = currentScene.name;
+                    }
+                }, 100);
+            }
+        }
+
+        // Actualizar nombre de escena actual periódicamente
+        setInterval(() => {
+            if (window.sceneManager) {
+                const currentScene = window.sceneManager.getCurrentScene();
+                if (currentScene) {
+                    document.getElementById('current-scene-name').textContent = currentScene.name;
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,28 @@
+/**
+ * styles.css - Estilos adicionales para el proyecto
+ * 
+ * Los estilos principales están en index.html
+ * Este archivo está disponible para estilos personalizados adicionales
+ */
+
+/* Ejemplo: Tema oscuro personalizado */
+/*
+body.dark-theme {
+    background-color: #000;
+}
+*/
+
+/* Ejemplo: Animaciones personalizadas */
+/*
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.scene-container.custom-fade {
+    animation: fadeIn 1s ease-in-out;
+}
+*/
+
+/* Agrega tus estilos personalizados aquí */
+
