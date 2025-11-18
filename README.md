@@ -101,8 +101,8 @@ The system uses a clear layer hierarchy:
 
 - **Z-Index 0**: `#app-container` (scene base)
 - **Z-Index 1**: `.scene-container` (individual scenes)
-- **Z-Index 10000**: `#test-controls`, `#info-overlay` (permanent UI)
-- **Z-Index 100000**: `#global-preloader` (covers everything during loading)
+- **Z-Index 2**: `#test-controls`, `#info-overlay` (permanent UI)
+- **Z-Index 3**: `#global-preloader` (covers everything during loading)
 
 ### Smart Preloader System
 
